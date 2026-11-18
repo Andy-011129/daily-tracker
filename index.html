@@ -22,7 +22,7 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 .action{border:0;border-radius:11px;background:var(--c);color:white;font-weight:650;font-size:12px;padding:10px 12px;width:100%;cursor:pointer}.tile:not(.active) .action{background:color-mix(in srgb,var(--c) 13%,white);color:var(--c)}
 .report{background:var(--card);border:1px solid var(--line);border-radius:19px;padding:17px}.bar{display:flex;height:13px;border-radius:20px;overflow:hidden;background:#edf0f3;gap:2px;margin:16px 0}.bar span{height:100%;min-width:0}.legend{display:grid;gap:13px}.legendrow{display:flex;align-items:center;justify-content:space-between;font-size:12px}.legendname{display:flex;align-items:center;gap:9px}.legendname i{width:9px;height:9px;border-radius:50%}.legendval{color:#626975}
 .controls{display:flex;gap:9px;margin-top:16px}.secondary{flex:1;border:1px solid var(--line);background:white;border-radius:12px;padding:11px;font-size:12px;color:#525a65}
-.note{font-size:11px;color:var(--muted);line-height:1.6;margin:17px 3px}.history{display:flex;justify-content:space-between;align-items:center;margin-top:17px}.history input{border:1px solid var(--line);border-radius:10px;padding:8px;background:white;color:var(--ink)}
+.note{font-size:11px;color:var(--muted);line-height:1.6;margin:17px 3px}.exportarea{margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}.exportbtn{width:100%;border:0;border-radius:12px;background:#202630;color:white;padding:13px;font-size:13px;font-weight:650}.preview{display:none;width:100%;height:auto;border-radius:13px;margin-top:12px;border:1px solid var(--line)}.preview.show{display:block}.exporthint{font-size:11px;color:var(--muted);line-height:1.5;margin:9px 2px 0}.history{display:flex;justify-content:space-between;align-items:center;margin-top:17px}.history input{border:1px solid var(--line);border-radius:10px;padding:8px;background:white;color:var(--ink)}
 .overlay{position:fixed;inset:0;background:#11182766;display:none;align-items:flex-end;justify-content:center;padding:14px;z-index:5}.overlay.show{display:flex}.modal{width:100%;max-width:500px;max-height:88vh;overflow:auto;background:#fff;border-radius:23px;padding:21px 18px calc(20px + env(safe-area-inset-bottom))}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:17px}.modalhead h2{font-size:18px;margin:0}.close{border:0;background:#f1f2f4;border-radius:50%;width:32px;height:32px;font-size:18px}.editrow{padding:13px 0;border-bottom:1px solid var(--line)}.fieldlabel{font-size:12px;color:var(--muted);margin-bottom:8px;display:block}.nameinput{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px;font-size:14px}.swatches{display:flex;gap:13px;margin-top:11px}.swatch{width:27px;height:27px;border-radius:50%;border:2px solid white;outline:1px solid #d9dde3;padding:0}.swatch.selected{outline:2px solid #252b34}.reminderbox{padding:16px 0;border-bottom:1px solid var(--line)}.reminderline{display:flex;align-items:center;justify-content:space-between;gap:10px}.reminderline strong{font-size:14px}.reminderline input[type=time]{border:1px solid var(--line);border-radius:10px;padding:8px}.toggle{width:44px;height:25px;appearance:none;background:#d8dce2;border-radius:20px;position:relative}.toggle:checked{background:#29ad91}.toggle:before{content:"";position:absolute;width:19px;height:19px;background:#fff;border-radius:50%;left:3px;top:3px}.toggle:checked:before{left:22px}.savebtn{width:100%;border:0;border-radius:12px;background:#202630;color:white;padding:13px;font-weight:650;margin-top:17px}.hint{font-size:11px;line-height:1.55;color:var(--muted);margin:12px 0 0}#toast{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#202630;color:#fff;padding:11px 16px;border-radius:12px;font-size:12px;opacity:0;pointer-events:none;transition:.2s;max-width:90%;white-space:nowrap}#toast.show{opacity:1}
 @media(max-width:360px){.time{font-size:22px}.tile{padding:13px 11px}}
 </style>
@@ -38,94 +38,80 @@ header{display:flex;justify-content:space-between;align-items:center;margin-bott
 <div class="eyebrow" style="color:#858b96">TIME DISTRIBUTION</div>
 <div class="bar" id="bar"></div><div class="legend" id="legend"></div>
 <div class="history"><span style="font-size:12px;font-weight:650">查看历史日期</span><input id="historyDate" type="date"></div>
+<div class="exportarea"><button class="exportbtn" id="exportBtn">生成 / 保存日报图片</button><img id="reportPreview" class="preview" alt="日报图片预览"><p class="exporthint" id="exportHint">选择日期后，可生成当天的 PNG 图片并保存到相册或分享给微信。</p></div>
 </section>
 <div class="controls"><button class="secondary" id="notifyBtn">开启通知权限</button><button class="secondary" id="resetBtn">清除本机数据</button></div>
-<p class="note">数据仅保存在此设备的浏览器本地。计时依据开始/停止时间戳计算，切换应用或重新打开后会自动补算。请勿清除 Safari 网站数据，否则本地记录可能丢失。09:00 和 23:00 提醒需要应用保持打开；iOS 网页应用无法保证关闭后准时触发本地通知。</p>
+<p class="note">数据仅保存在此设备的浏览器本地。每天 23:00 自动停止计时并保存日报；若应用当时关闭或被挂起，下次打开时会按 23:00 补做结算。请勿清除 Safari 网站数据，否则本地记录可能丢失。iOS 网页应用无法保证应用关闭后准时弹出通知。</p>
 </main>
 <div class="overlay" id="settingsOverlay"><section class="modal"><div class="modalhead"><h2>设置</h2><button class="close" id="closeSettings">×</button></div><div id="categoryEditors"></div><div class="reminderbox"><div class="reminderline"><strong>每日开始提醒</strong><input type="checkbox" class="toggle" id="morningEnabled"></div><div class="reminderline" style="margin-top:13px"><span style="font-size:12px;color:#858b96">提醒时间</span><input type="time" id="morningTime" value="09:00"></div><p class="hint">默认 09:00。到时提醒你开始记录，不会自动替你选择活动。网页应用在后台或被系统关闭时，iOS 不保证准时发送通知。</p></div><button class="savebtn" id="saveSettings">保存设置</button></section></div>
 <div id="toast"></div>
 <script>
-const DEFAULT_TYPES=[
- {id:"lab",name:"实验",color:"#438ee8"},
- {id:"english",name:"英语口语",color:"#29ad91"},
- {id:"info",name:"信息输入",color:"#e4a13c"},
- {id:"other",name:"其它活动",color:"#987bd1"}
-];
-const COLORS=["#438ee8","#29ad91","#e4a13c","#987bd1","#e05252"];
-const COLOR_NAMES=["蓝色","绿色","橙色","紫色","红色"];
-const KEY="dailyTracker.v1";
+const DEFAULT_TYPES=[{id:"lab",name:"实验",color:"#438ee8"},{id:"english",name:"英语口语",color:"#29ad91"},{id:"info",name:"信息输入",color:"#e4a13c"},{id:"other",name:"其它活动",color:"#987bd1"}];
+const COLORS=["#438ee8","#29ad91","#e4a13c","#987bd1","#e05252"],COLOR_NAMES=["蓝色","绿色","橙色","紫色","红色"],KEY="dailyTracker.v1";
 let state=load();
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||{sessions:[],active:null,remindedDate:null}}catch(e){return {sessions:[],active:null,remindedDate:null}}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
-function ensureSettings(){if(!state.settings)state.settings={categories:{},morningEnabled:false,morningTime:"09:00"};if(!state.settings.categories)state.settings.categories={};}
-ensureSettings();save();
+function ensureState(){if(!Array.isArray(state.sessions))state.sessions=[];if(!state.settings)state.settings={categories:{},morningEnabled:false,morningTime:"09:00"};if(!state.settings.categories)state.settings.categories={};if(!state.dailyReports)state.dailyReports={};if(!state.finalizedDays)state.finalizedDays={}}
+ensureState();
 function types(){return DEFAULT_TYPES.map(d=>({...d,...(state.settings.categories[d.id]||{})}))}
 function pad(n){return String(n).padStart(2,"0")}
 function fmt(sec){sec=Math.max(0,Math.floor(sec));return `${pad(Math.floor(sec/3600))}:${pad(Math.floor(sec%3600/60))}:${pad(sec%60)}`}
 function dayKey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
-function dayStart(key){return new Date(key+"T00:00:00").getTime()}
-function getTotals(key){
- const start=dayStart(key),end=start+86400000, totals={lab:0,english:0,info:0,other:0};
- const all=state.sessions.slice();if(state.active)all.push(state.active);
- for(const s of all){const a=Math.max(start,s.start),b=Math.min(end,s.end||Date.now());if(b>a)totals[s.id]+=(b-a)/1000}
- return totals;
-}
-function switchTo(id){
- const now=Date.now();
- if(state.active&&state.active.id===id){
-  if(id==="other"){toast("其它活动是默认兜底计时；选择其他项目即可切换。");return}
-  state.sessions.push({...state.active,end:now});state.active={id:"other",start:now};
- }else{
-  if(state.active)state.sessions.push({...state.active,end:now});
-  state.active={id,start:now};
- }
- save();render();
-}
-function render(){
- const now=new Date(),today=dayKey(now),selected=document.getElementById("historyDate").value||today, TYPES=types();
- document.getElementById("dateLabel").textContent=now.toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});
- const t=getTotals(today),sum=Object.values(t).reduce((a,b)=>a+b,0);
- document.getElementById("total").textContent=fmt(sum);
- const activeType=TYPES.find(x=>state.active&&x.id===state.active.id);
- document.getElementById("activeLabel").textContent=activeType?`正在记录：${activeType.name}`:"当前没有计时器运行";
- document.getElementById("cards").innerHTML=TYPES.map(x=>`<article class="tile ${state.active?.id===x.id?"active":""}" style="--c:${x.color}"><div class="top"><div style="display:flex;align-items:center;gap:8px"><i class="dot"></i><span class="name">${escapeHtml(x.name)}</span></div>${state.active?.id===x.id?'<span class="status">● 计时中</span>':''}</div><div class="time">${fmt(t[x.id])}</div><button class="action" data-id="${x.id}">${state.active?.id===x.id?(x.id==="other"?"默认运行中":"停止并切换到其它"):"开始计时"}</button></article>`).join("");
- document.querySelectorAll("[data-id]").forEach(b=>b.addEventListener("click",()=>switchTo(b.dataset.id)));
- document.getElementById("reportDate").textContent=selected===today?"今天":selected;
- const rt=getTotals(selected),rSum=Object.values(rt).reduce((a,b)=>a+b,0);
- document.getElementById("bar").innerHTML=TYPES.map(x=>`<span style="width:${rSum?rt[x.id]/rSum*100:0}%;background:${x.color}"></span>`).join("");
- document.getElementById("legend").innerHTML=TYPES.map(x=>`<div class="legendrow"><div class="legendname"><i style="background:${x.color}"></i>${x.name}</div><div class="legendval">${fmt(rt[x.id])}　${rSum?(rt[x.id]/rSum*100).toFixed(1):"0.0"}%</div></div>`).join("");
-}
-function toast(s){const el=document.getElementById("toast");el.textContent=s;el.classList.add("show");setTimeout(()=>el.classList.remove("show"),2300)}
-function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-function openSettings(){
- const ts=types();
- document.getElementById("categoryEditors").innerHTML=ts.map((x,i)=>`<div class="editrow"><label class="fieldlabel">项目 ${i+1} 名称</label><input class="nameinput" maxlength="12" data-name="${x.id}" value="${escapeHtml(x.name)}"><span class="fieldlabel" style="margin-top:12px">项目颜色</span><div class="swatches">${COLORS.map((c,j)=>`<button type="button" class="swatch ${x.color.toLowerCase()===c?"selected":""}" style="background:${c}" aria-label="${COLOR_NAMES[j]}" data-color="${x.id}|${c}"></button>`).join("")}</div></div>`).join("");
- document.querySelectorAll("[data-color]").forEach(b=>b.addEventListener("click",()=>{const [id,c]=b.dataset.color.split("|");document.querySelectorAll(`[data-color^="${id}|"]`).forEach(v=>v.classList.toggle("selected",v.dataset.color===`${id}|${c}`))}));
- document.getElementById("morningEnabled").checked=!!state.settings.morningEnabled;document.getElementById("morningTime").value=state.settings.morningTime||"09:00";
- document.getElementById("settingsOverlay").classList.add("show");
-}
-function closeSettings(){document.getElementById("settingsOverlay").classList.remove("show")}
-document.getElementById("openSettings").addEventListener("click",openSettings);document.getElementById("closeSettings").addEventListener("click",closeSettings);
-document.getElementById("settingsOverlay").addEventListener("click",e=>{if(e.target.id==="settingsOverlay")closeSettings()});
-document.getElementById("saveSettings").addEventListener("click",()=>{
- for(const d of DEFAULT_TYPES){const input=document.querySelector(`[data-name="${d.id}"]`),selected=document.querySelector(`[data-color^="${d.id}|"] .selected`);const chosen=document.querySelector(`[data-color^="${d.id}|"][class~="selected"]`);state.settings.categories[d.id]={name:(input.value.trim()||d.name),color:chosen?chosen.dataset.color.split("|")[1]:d.color};}
- state.settings.morningEnabled=document.getElementById("morningEnabled").checked;state.settings.morningTime=document.getElementById("morningTime").value||"09:00";save();closeSettings();render();toast("设置已保存");
-});
-document.getElementById("historyDate").value=dayKey(new Date());
-document.getElementById("historyDate").addEventListener("change",render);
-document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("确定清除本机全部计时记录？此操作不可撤销。")){state={sessions:[],active:null,remindedDate:null,settings:{categories:{},morningEnabled:false,morningTime:"09:00"}};save();render();toast("本机记录已清除")}});
-document.getElementById("notifyBtn").addEventListener("click",async()=>{
- if(!("Notification" in window)){toast("当前浏览器不支持通知");return}
- const p=await Notification.requestPermission();toast(p==="granted"?"通知权限已开启（应用打开时可提醒）":"未获得通知权限");
-});
+function dayStart(k){return new Date(k+"T00:00:00").getTime()}
+function cutoffTime(k){const d=new Date(k+"T00:00:00");d.setHours(23,0,0,0);return d.getTime()}
+function totalsFromSessions(k){const a=dayStart(k),b=cutoffTime(k),t={lab:0,english:0,info:0,other:0};for(const s of state.sessions){const x=Math.max(a,s.start),y=Math.min(b,s.end||Date.now());if(y>x&&t[s.id]!==undefined)t[s.id]+=(y-x)/1000}return t}
+function getTotals(k){const r=state.dailyReports[k];if(r?.totals)return {...r.totals};const t=totalsFromSessions(k);if(state.active&&dayKey(new Date(state.active.start))===k){const a=Math.max(dayStart(k),state.active.start),b=Math.min(cutoffTime(k),Date.now());if(b>a&&t[state.active.id]!==undefined)t[state.active.id]+=(b-a)/1000}return t}
+function snapshotTypes(){return types().map(x=>({id:x.id,name:x.name,color:x.color}))}
+function toast(s){const e=document.getElementById("toast");e.textContent=s;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),2800)}
 function sendNotice(title,body){if("Notification"in window&&Notification.permission==="granted"){try{new Notification(title,{body})}catch(e){toast(body)}}else toast(body)}
-function checkReminder(){
- const now=new Date(),key=dayKey(now),hhmm=pad(now.getHours())+":"+pad(now.getMinutes());
- if(state.settings.morningEnabled&&hhmm===state.settings.morningTime&&state.morningRemindedDate!==key){state.morningRemindedDate=key;save();sendNotice("Daily Tracker","早上好！记得开始记录今天的活动时间。");}
- if(now.getHours()===23&&state.remindedDate!==key){state.remindedDate=key;save();sendNotice("Daily Tracker","今天的时间记录已汇总，打开应用查看统计图。");}
+function finalizeDay(k,notify=false){if(state.dailyReports[k])return false;const cutoff=cutoffTime(k);if(state.active&&dayKey(new Date(state.active.start))===k){if(state.active.start<cutoff)state.sessions.push({...state.active,end:cutoff});state.active=null}state.dailyReports[k]={date:k,totals:totalsFromSessions(k),categories:snapshotTypes(),finalizedAt:Date.now(),cutoff:"23:00"};state.finalizedDays[k]=true;save();if(notify)sendNotice("Daily Tracker","今天的记录已在 23:00 自动结算，日报已保存。");return true}
+function processDayBoundaries(){const now=Date.now(),today=dayKey(new Date());let earliest=null;if(state.active)earliest=dayKey(new Date(state.active.start));for(const s of state.sessions){const k=dayKey(new Date(s.start));if(!earliest||k<earliest)earliest=k}const yd=new Date();yd.setDate(yd.getDate()-1);const yesterday=dayKey(yd);if(earliest){let d=new Date(earliest+"T00:00:00"),guard=0;while(dayKey(d)<=yesterday&&guard++<3660){const k=dayKey(d);if(!state.dailyReports[k])finalizeDay(k,false);d.setDate(d.getDate()+1)}}if(now>=cutoffTime(today)&&!state.dailyReports[today])finalizeDay(today,true)}
+function switchTo(id){const now=Date.now(),today=dayKey(new Date());processDayBoundaries();if(now>=cutoffTime(today)){toast("今天已于 23:00 结算，请明天再开始计时。");render();return}if(state.active&&state.active.id===id){if(id==="other"){toast("「其它活动」是默认兜底计时，选择其他项目即可切换。");return}state.sessions.push({...state.active,end:now});state.active={id:"other",start:now}}else{if(state.active)state.sessions.push({...state.active,end:now});state.active={id,start:now}}save();render()}
+function render(){const now=new Date(),today=dayKey(now),selected=document.getElementById("historyDate").value||today,T=types(),t=getTotals(today),sum=Object.values(t).reduce((a,b)=>a+b,0);document.getElementById("dateLabel").textContent=now.toLocaleDateString("zh-CN",{month:"long",day:"numeric",weekday:"short"});document.getElementById("total").textContent=fmt(sum);const activeType=T.find(x=>state.active&&x.id===state.active.id);document.getElementById("activeLabel").textContent=activeType?`正在记录：${activeType.name}`:(now.getTime()>=cutoffTime(today)?"今日已结算，等待明天开始":"当前没有计时器运行");document.getElementById("cards").innerHTML=T.map(x=>`<article class="tile ${state.active?.id===x.id?"active":""}" style="--c:${x.color}"><div class="top"><div style="display:flex;align-items:center;gap:8px"><i class="dot"></i><span class="name">${escapeHtml(x.name)}</span></div>${state.active?.id===x.id?'<span class="status">● 计时中</span>':''}</div><div class="time">${fmt(t[x.id])}</div><button class="action" data-id="${x.id}" ${now.getTime()>=cutoffTime(today)?"disabled":""}>${state.active?.id===x.id?(x.id==="other"?"默认运行中":"停止并切换到其它"):"开始计时"}</button></article>`).join("");document.querySelectorAll("[data-id]").forEach(b=>b.addEventListener("click",()=>switchTo(b.dataset.id)));const r=state.dailyReports[selected];document.getElementById("reportDate").textContent=selected===today?(r?"今天 · 已结算":"今天"):(r?selected+" · 已结算":selected);const rt=getTotals(selected),rs=Object.values(rt).reduce((a,b)=>a+b,0),RT=r?.categories||T;document.getElementById("bar").innerHTML=RT.map(x=>`<span style="width:${rs?(rt[x.id]||0)/rs*100:0}%;background:${x.color}"></span>`).join("");document.getElementById("legend").innerHTML=RT.map(x=>`<div class="legendrow"><div class="legendname"><i style="background:${x.color}"></i>${escapeHtml(x.name)}</div><div class="legendval">${fmt(rt[x.id]||0)}　${rs?((rt[x.id]||0)/rs*100).toFixed(1):"0.0"}%</div></div>`).join("");updateReportPreview(selected,rt,RT,r)}
+function drawReportCanvas(date,totals,cats){
+ const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");canvas.width=1200;canvas.height=1500;
+ const W=canvas.width;ctx.fillStyle="#f4f6f8";ctx.fillRect(0,0,W,canvas.height);
+ const round=(x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()};
+ round(55,55,1090,1390,38,"#ffffff");
+ ctx.fillStyle="#202630";ctx.font="700 30px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText("DAILY TRACKER",105,135);
+ ctx.fillStyle="#858b96";ctx.font="24px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText("DAILY ACTIVITY REPORT",105,180);
+ ctx.fillStyle="#202630";ctx.font="700 54px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText(date,105,285);
+ const total=Object.values(totals).reduce((a,b)=>a+(Number(b)||0),0);
+ ctx.fillStyle="#858b96";ctx.font="24px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText("TOTAL TRACKED",105,365);
+ ctx.fillStyle="#202630";ctx.font="700 76px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText(fmt(total),105,455);
+ round(105,515,990,26,13,"#edf0f3");let x=105;const usable=990;
+ cats.forEach(c=>{const v=Math.max(0,Number(totals[c.id])||0),w=total?usable*v/total:0;if(w>0){ctx.fillStyle=c.color;ctx.fillRect(x,515,w,26);x+=w}});
+ ctx.fillStyle="#202630";ctx.font="700 30px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText("TIME BREAKDOWN",105,645);
+ cats.forEach((c,i)=>{const y=735+i*145,v=Math.max(0,Number(totals[c.id])||0),pct=total?v/total*100:0;round(105,y-28,18,18,9,c.color);ctx.fillStyle="#303640";ctx.font="600 30px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText(c.name,150,y-10);ctx.fillStyle="#202630";ctx.font="700 32px -apple-system,BlinkMacSystemFont,sans-serif";ctx.textAlign="right";ctx.fillText(fmt(v),1090,y-10);ctx.textAlign="left";ctx.fillStyle="#858b96";ctx.font="24px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText(pct.toFixed(1)+"%",150,y+35);round(150,y+55,940,10,5,"#edf0f3");if(pct>0)round(150,y+55,940*pct/100,10,5,c.color)});
+ ctx.fillStyle="#a0a6af";ctx.font="22px -apple-system,BlinkMacSystemFont,sans-serif";ctx.fillText("记录仅保存在本设备 · Daily Tracker",105,1370);
+ return canvas;
 }
+let lastPreviewSignature="";
+function updateReportPreview(date,totals,cats,report){
+ const signature=date+"|"+cats.map(c=>c.id+":"+c.name+":"+c.color).join("|")+"|"+Object.keys(totals).map(k=>Math.floor((Number(totals[k])||0)/60)).join(",")+"|"+!!report;if(signature===lastPreviewSignature)return;lastPreviewSignature=signature;
+ const img=document.getElementById("reportPreview"),hint=document.getElementById("exportHint");
+ try{const canvas=drawReportCanvas(date,totals,cats);img.src=canvas.toDataURL("image/png");img.classList.add("show");hint.textContent=report?"这一天已结算。日报图片已生成预览，可保存到相册或分享。":"这是所选日期的当前统计预览；若尚未结算，之后的数据仍可能变化。";}
+ catch(e){img.classList.remove("show");hint.textContent="图片预览暂不可用，请点击按钮重新生成。"}
+}
+async function exportReport(){
+ const date=document.getElementById("historyDate").value||dayKey(new Date()),r=state.dailyReports[date],totals=getTotals(date),cats=r?.categories||types();
+ const canvas=drawReportCanvas(date,totals,cats);const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/png"));if(!blob){toast("图片生成失败，请重试");return}
+ const file=new File([blob],`Daily-Tracker-${date}.png`,{type:"image/png"});
+ if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){try{await navigator.share({files:[file],title:`Daily Tracker ${date}`,text:`${date} 活动时间日报`});return}catch(e){if(e.name==="AbortError")return}}
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`Daily-Tracker-${date}.png`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+ if(/iPhone|iPad|iPod/i.test(navigator.userAgent))toast("若未出现保存选项，可长按日报预览图片并选择“存储到照片”或分享");else toast("日报 PNG 已开始下载");
+}
+document.getElementById("exportBtn").addEventListener("click",exportReport);
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function openSettings(){const ts=types();document.getElementById("categoryEditors").innerHTML=ts.map((x,i)=>`<div class="editrow"><label class="fieldlabel">项目 ${i+1} 名称</label><input class="nameinput" maxlength="12" data-name="${x.id}" value="${escapeHtml(x.name)}"><span class="fieldlabel" style="margin-top:12px">项目颜色</span><div class="swatches">${COLORS.map((c,j)=>`<button type="button" class="swatch ${x.color.toLowerCase()===c?"selected":""}" style="background:${c}" aria-label="${COLOR_NAMES[j]}" data-color="${x.id}|${c}"></button>`).join("")}</div></div>`).join("");document.querySelectorAll("[data-color]").forEach(b=>b.addEventListener("click",()=>{const [id,c]=b.dataset.color.split("|");document.querySelectorAll(`[data-color^="${id}|"]`).forEach(v=>v.classList.toggle("selected",v.dataset.color===`${id}|${c}`))}));document.getElementById("morningEnabled").checked=!!state.settings.morningEnabled;document.getElementById("morningTime").value=state.settings.morningTime||"09:00";document.getElementById("settingsOverlay").classList.add("show")}
+function closeSettings(){document.getElementById("settingsOverlay").classList.remove("show")}
+document.getElementById("openSettings").addEventListener("click",openSettings);document.getElementById("closeSettings").addEventListener("click",closeSettings);document.getElementById("settingsOverlay").addEventListener("click",e=>{if(e.target.id==="settingsOverlay")closeSettings()});
+document.getElementById("saveSettings").addEventListener("click",()=>{for(const d of DEFAULT_TYPES){const input=document.querySelector(`[data-name="${d.id}"]`),chosen=document.querySelector(`[data-color^="${d.id}|"] .selected`);const selected=document.querySelector(`[data-color^="${d.id}|"][class~="selected"]`);state.settings.categories[d.id]={name:input.value.trim()||d.name,color:selected?selected.dataset.color.split("|")[1]:d.color}}state.settings.morningEnabled=document.getElementById("morningEnabled").checked;state.settings.morningTime=document.getElementById("morningTime").value||"09:00";save();closeSettings();render();toast("设置已保存")});
+document.getElementById("historyDate").value=dayKey(new Date());document.getElementById("historyDate").addEventListener("change",render);
+document.getElementById("resetBtn").addEventListener("click",()=>{if(confirm("确定清除本机全部计时记录、日报和设置？此操作不可撤销。")){state={sessions:[],active:null,remindedDate:null,morningRemindedDate:null,dailyReports:{},finalizedDays:{},settings:{categories:{},morningEnabled:false,morningTime:"09:00"}};save();render();toast("本机记录已清除")}});
+document.getElementById("notifyBtn").addEventListener("click",async()=>{if(!("Notification"in window)){toast("当前浏览器不支持通知");return}const p=await Notification.requestPermission();toast(p==="granted"?"通知权限已开启（应用运行时可提醒）":"未获得通知权限")});
+function checkReminders(){const n=new Date(),k=dayKey(n),hhmm=pad(n.getHours())+":"+pad(n.getMinutes());if(state.settings.morningEnabled&&hhmm>=state.settings.morningTime&&n.getHours()<23&&state.morningRemindedDate!==k){state.morningRemindedDate=k;save();sendNotice("Daily Tracker","早上好！记得开始记录今天的活动时间。")}}
 if("serviceWorker"in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-render();setInterval(()=>{render();checkReminder()},1000);checkReminder();
-document.addEventListener("visibilitychange",()=>{if(!document.hidden){render();checkReminder()}});
+processDayBoundaries();render();setInterval(()=>{processDayBoundaries();checkReminders();render()},1000);document.addEventListener("visibilitychange",()=>{if(!document.hidden){processDayBoundaries();checkReminders();render()}});window.addEventListener("pageshow",()=>{processDayBoundaries();render()});
 </script>
 </body></html>
